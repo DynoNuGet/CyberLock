@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
 import '../main.css';
 
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   
-  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>('');
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({ activeTab, name, password, rememberMe });
-    navigate('/home');
+    setErrorMsg('');
+
+    try {
+      // autenticação firebase
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login efetuado com sucesso!');
+      navigate('/home');
+    } catch (error: any) {
+      console.error('Erro ao fazer login:', error.message);
+      setErrorMsg('E-mail ou senha incorretos. Tente novamente.');
+    }
   };
 
   return (
@@ -68,13 +80,15 @@ export const Login: React.FC = () => {
             Entre em seu perfil para salvar o progresso de seus jogos!
           </p>
 
+          {errorMsg && <p style={internalStyles.errorText}>{errorMsg}</p>}
+
           <form onSubmit={handleSubmit} style={internalStyles.form}>
             <div style={internalStyles.inputWrapper}>
               <input
-                type="text"
-                placeholder="Escreva seu nome"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                type="email"
+                placeholder="Escreva seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
                 required
               />
@@ -159,9 +173,16 @@ const internalStyles: { [key: string]: React.CSSProperties } = {
     color: '#4c1d95',
     fontSize: '0.95rem',
     textAlign: 'center',
-    marginBottom: '24px',
+    marginBottom: '20px',
     fontWeight: 500,
     lineHeight: '1.4',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: '0.8rem',
+    marginBottom: '15px',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   form: {
     width: '100%',

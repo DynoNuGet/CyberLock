@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
 import '../main.css';
 
 export const AuthScreen: React.FC = () => {
@@ -11,13 +13,23 @@ export const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>('');
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({ activeTab, name, email, password, rememberMe });
-    navigate('/home');
+    setErrorMsg('');
+
+    // autenticação firebase
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Utilizador registado com sucesso!', { name });
+      navigate('/home');
+    } catch (error: any) {
+      console.error('Erro ao registar:', error.message);
+      setErrorMsg('Erro ao criar conta. Verifique se o e-mail é válido e se a senha tem pelo menos 6 caracteres.');
+    }
   };
 
   return (
@@ -69,6 +81,8 @@ export const AuthScreen: React.FC = () => {
             Crie um perfil para salvar o progresso de seus jogos!
           </p>
 
+          {errorMsg && <p style={internalStyles.errorText}>{errorMsg}</p>}
+
           <form onSubmit={handleSubmit} style={internalStyles.form}>
             <div style={internalStyles.inputWrapper}>
               <input
@@ -95,7 +109,7 @@ export const AuthScreen: React.FC = () => {
             <div style={internalStyles.inputWrapper}>
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Escreva sua senha"
+                placeholder="Escreva sua senha (mín. 6 caracteres)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
@@ -168,9 +182,16 @@ const internalStyles: { [key: string]: React.CSSProperties } = {
     color: '#4c1d95',
     fontSize: '0.95rem',
     textAlign: 'center',
-    marginBottom: '24px',
+    marginBottom: '20px',
     fontWeight: 500,
     lineHeight: '1.4',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: '0.8rem',
+    marginBottom: '15px',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   form: {
     width: '100%',
