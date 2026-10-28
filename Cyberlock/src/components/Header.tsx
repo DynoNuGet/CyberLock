@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
                 style={styles.dropdownItem} 
                 onClick={() => {
                   setDropdownOpen(false);
-                  navigate('/conta'); // Podes criar esta rota ou painel futuramente
+                  navigate('/perfil');
                 }}
               >
                 <User size={16} color="#6d28d9" />

@@ -6,6 +6,7 @@ import { Jogos } from './screens/Jogos';
 import { Noticias } from './screens/Noticias';
 import { SobreNos } from './screens/SobreNos';
 import { Planos } from './screens/Planos';
+import { Perfil } from './screens/Perfil';
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/sobre" element={<SobreNos />} />
         <Route path="/planos" element={<Planos />} />
+        <Route path="/perfil" element={<Perfil />} />
       </Routes>
     </Router>
   );
