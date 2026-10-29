@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Shield, User, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook para saber a rota atual
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fecha o pop up se clicar fora dele
+  // Fecha o pop-up se o utilizador clicar fora dele
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -23,11 +24,13 @@ export const Header: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); // Redireciona para o login depois de sair
+      navigate('/');
     } catch (error) {
       console.error('Erro ao terminar sessão:', error);
     }
   };
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <header style={styles.header}>
@@ -40,14 +43,58 @@ export const Header: React.FC = () => {
         </div>
 
         <nav style={styles.nav}>
-          <span onClick={() => navigate('/home')} style={{ ...styles.navLink, ...styles.navLinkActive, cursor: 'pointer' }}>Início</span>
-          <span onClick={() => navigate('/jogos')} style={{ ...styles.navLink, cursor: 'pointer' }}>Jogos</span>
-          <span onClick={() => navigate('/noticias')} style={{ ...styles.navLink, cursor: 'pointer' }}>Notícias</span>
-          <span onClick={() => navigate('/sobre')} style={{ ...styles.navLink, cursor: 'pointer' }}>Sobre nós</span>
-          <span onClick={() => navigate('/planos')} style={{ ...styles.navLink, cursor: 'pointer' }}>Planos</span>
+          <span 
+            onClick={() => navigate('/home')} 
+            style={{ 
+              ...styles.navLink, 
+              ...(isActive('/home') ? styles.navLinkActive : {}), 
+              cursor: 'pointer' 
+            }}
+          >
+            Início
+          </span>
+          <span 
+            onClick={() => navigate('/jogos')} 
+            style={{ 
+              ...styles.navLink, 
+              ...(isActive('/jogos') ? styles.navLinkActive : {}), 
+              cursor: 'pointer' 
+            }}
+          >
+            Jogos
+          </span>
+          <span 
+            onClick={() => navigate('/noticias')} 
+            style={{ 
+              ...styles.navLink, 
+              ...(isActive('/noticias') ? styles.navLinkActive : {}), 
+              cursor: 'pointer' 
+            }}
+          >
+            Notícias
+          </span>
+          <span 
+            onClick={() => navigate('/sobre')} 
+            style={{ 
+              ...styles.navLink, 
+              ...(isActive('/sobre') ? styles.navLinkActive : {}), 
+              cursor: 'pointer' 
+            }}
+          >
+            Sobre nós
+          </span>
+          <span 
+            onClick={() => navigate('/planos')} 
+            style={{ 
+              ...styles.navLink, 
+              ...(isActive('/planos') ? styles.navLinkActive : {}), 
+              cursor: 'pointer' 
+            }}
+          >
+            Planos
+          </span>
         </nav>
 
-        {/* Grupo do Perfil com Pop-up */}
         <div style={styles.profileContainer} ref={dropdownRef}>
           <div 
             style={styles.profileButton} 
@@ -69,7 +116,6 @@ export const Header: React.FC = () => {
             />
           </div>
 
-          {/* Menu Pop-up / Dropdown */}
           {dropdownOpen && (
             <div style={styles.dropdownMenu}>
               <button 
