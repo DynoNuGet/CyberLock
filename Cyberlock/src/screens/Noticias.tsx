@@ -1,9 +1,8 @@
 import React from 'react';
 import { Header } from '../components/Header';
-import { NoticiasCard } from '../components/NoticiasCard';
+import { CarrosselNoticias } from '../components/CarrosselNoticias';
 import { Footer } from '../components/Footer';
-import { Carousel } from '../components/Carrossel';
-import { Dados_Noticias } from '../dadosCarrossel';
+import { NOTICIAS_LISTA } from '../dados/noticias';
 import { FileText } from 'lucide-react';
 import '../main.css';
 
@@ -23,17 +22,13 @@ export const Noticias: React.FC = () => {
 
           <div style={styles.badgeHighlight}>
             <FileText size={14} color="#3b00a5" />
-            <span>{Dados_Noticias.length} artigos destaque</span>
+            <span>{NOTICIAS_LISTA.length} artigos destaque</span>
           </div>
         </section>
 
         {/* Carrossel Noticias */}
         <section style={styles.section}>
-          <Carousel
-            items={Dados_Noticias}
-            itemWidth={480}
-            renderItem={(article) => <NoticiasCard {...article} />}
-          />
+          <CarrosselNoticias larguraItem={480} />
         </section>
 
         <div style={styles.infoBadge}>

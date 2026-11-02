@@ -2,17 +2,50 @@ import React, { useState } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { User, Mail, Shield, Award, KeyRound, CheckCircle2 } from 'lucide-react';
+import { updateProfile, sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { useAuth } from '../contexts/AuthContext';
+import { Avatar } from '../components/Avatar';
 import '../main.css';
 
 export const Perfil: React.FC = () => {
-  const [name, setName] = useState('Lina');
-  const [email, setEmail] = useState('lina.security@cyberlock.com');
+  const { usuario, atualizarUsuario } = useAuth();
+  const [name, setName] = useState(usuario?.nome ?? '');
   const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccessMsg('Alterações salvas com sucesso!');
+  const mostrarSucesso = (mensagem: string) => {
+    setErrorMsg('');
+    setSuccessMsg(mensagem);
     setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+
+    try {
+      await updateProfile(auth.currentUser, { displayName: name.trim() });
+      atualizarUsuario();
+      mostrarSucesso('Alterações salvas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      setSuccessMsg('');
+      setErrorMsg('Não foi possível salvar as alterações. Tente novamente.');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!usuario?.email) return;
+
+    try {
+      await sendPasswordResetEmail(auth, usuario.email);
+      mostrarSucesso(`Enviamos um e-mail de redefinição para ${usuario.email}.`);
+    } catch (error) {
+      console.error('Erro ao enviar e-mail de redefinição:', error);
+      setSuccessMsg('');
+      setErrorMsg('Não foi possível enviar o e-mail de redefinição.');
+    }
   };
 
   return (
@@ -32,13 +65,9 @@ export const Perfil: React.FC = () => {
         <div style={styles.contentGrid}>
           <div style={styles.profileSummaryCard}>
             <div style={styles.avatarWrapper}>
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
-                alt="Avatar de Lina"
-                style={styles.avatar}
-              />
+              <Avatar nome={usuario?.nome ?? ''} fotoUrl={usuario?.fotoUrl} tamanho={84} />
             </div>
-            <h2 style={styles.profileName}>Lina</h2>
+            <h2 style={styles.profileName}>{usuario?.nome}</h2>
             <span style={styles.roleBadge}>Nível 3 • Analista</span>
 
             <div style={styles.statsRow}>
@@ -57,7 +86,7 @@ export const Perfil: React.FC = () => {
 
           <div style={styles.formCard}>
             <h3 style={styles.cardTitle}>Informações Pessoais</h3>
-            <p style={styles.cardDesc}>Atualize seu nome ou endereço de e-mail associado à conta.</p>
+            <p style={styles.cardDesc}>Atualize o nome exibido na sua conta.</p>
 
             {successMsg && (
               <div style={styles.successBanner}>
@@ -65,6 +94,8 @@ export const Perfil: React.FC = () => {
                 <span>{successMsg}</span>
               </div>
             )}
+
+            {errorMsg && <div style={styles.errorBanner}>{errorMsg}</div>}
 
             <form onSubmit={handleSave} style={styles.form}>
               <div style={styles.inputGroup}>
@@ -87,24 +118,19 @@ export const Perfil: React.FC = () => {
                   <Mail size={18} color="#7c3aed" style={styles.inputIcon} />
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={styles.inputField}
-                    required
+                    value={usuario?.email ?? ''}
+                    readOnly
+                    style={{ ...styles.inputField, color: '#6b7280', cursor: 'not-allowed' }}
                   />
                 </div>
               </div>
 
               <div style={styles.inputGroup}>
-                <label style={styles.label}>Alterar Senha</label>
-                <div style={styles.inputWrapper}>
-                  <KeyRound size={18} color="#7c3aed" style={styles.inputIcon} />
-                  <input
-                    type="password"
-                    placeholder="••••••••••••"
-                    style={styles.inputField}
-                  />
-                </div>
+                <label style={styles.label}>Senha</label>
+                <button type="button" onClick={handleResetPassword} style={styles.resetButton}>
+                  <KeyRound size={16} color="#7c3aed" />
+                  <span>Enviar e-mail para redefinir senha</span>
+                </button>
               </div>
 
               <button type="submit" style={styles.saveButton}>
@@ -184,11 +210,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '3px solid #7c3aed',
     marginBottom: '16px',
   },
-  avatar: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
   profileName: {
     fontSize: '1.4rem',
     fontWeight: 'bold',
@@ -256,6 +277,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '12px',
     fontSize: '0.8rem',
     fontWeight: 'bold',
+  },
+  errorBanner: {
+    backgroundColor: '#fef2f2',
+    color: '#991b1b',
+    padding: '10px 14px',
+    borderRadius: '12px',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+  },
+  resetButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    backgroundColor: '#f3e8ff',
+    color: '#6d28d9',
+    border: 'none',
+    borderRadius: '16px',
+    padding: '12px 14px',
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    textAlign: 'left',
   },
   form: {
     display: 'flex',

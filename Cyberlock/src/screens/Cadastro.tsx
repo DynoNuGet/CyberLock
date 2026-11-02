@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../services/firebase';
+import { useAuth } from '../contexts/AuthContext';
 import '../main.css';
 
 export const AuthScreen: React.FC = () => {
@@ -16,6 +17,7 @@ export const AuthScreen: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   const navigate = useNavigate();
+  const { atualizarUsuario } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,8 +25,10 @@ export const AuthScreen: React.FC = () => {
 
     // autenticação firebase
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      console.log('Utilizador registado com sucesso!', { name });
+      const credencial = await createUserWithEmailAndPassword(auth, email, password);
+      // O Firebase Auth não guarda o nome no cadastro: salvamos como displayName.
+      await updateProfile(credencial.user, { displayName: name.trim() });
+      atualizarUsuario();
       navigate('/home');
     } catch (error: any) {
       console.error('Erro ao registar:', error.message);

@@ -1,42 +1,54 @@
 import React from 'react';
 import { Star, Zap } from 'lucide-react';
+import type { Game } from '../dados/jogos';
 
-export interface GameCardProps {
-  title: string;
-  description: string;
-  level: string;
-  rating: string;
-  xp: string;
-  imageUrl: string;
+interface GameCardProps {
+  jogo: Game;
+  onClick?: () => void;
+  variante?: 'padrao' | 'compacto';
 }
 
-export const GameCard: React.FC<GameCardProps> = ({
-  title,
-  description,
-  level,
-  rating,
-  xp,
-  imageUrl,
-}) => {
+export const GameCard: React.FC<GameCardProps> = ({ jogo, onClick, variante = 'padrao' }) => {
+  const teclado = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
+
+  if (variante === 'compacto') {
+    return (
+      <div role="button" tabIndex={0} onClick={onClick} onKeyDown={teclado} style={styles.compacto}>
+        <span style={styles.compactoBadge}>{jogo.badge}</span>
+        <h3 style={styles.compactoTitulo}>{jogo.title}</h3>
+        <p style={styles.compactoDescricao}>{jogo.description}</p>
+        <div style={styles.compactoRodape}>
+          <span style={styles.compactoNiveis}>{jogo.niveis.length} níveis</span>
+          <span style={styles.compactoBotao}>Jogar</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={styles.card}>
+    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={teclado} style={styles.card}>
       <div style={styles.imageContainer}>
-        <img src={imageUrl} alt={title} style={styles.image} />
-        <span style={styles.levelBadge}>{level}</span>
+        <img src={jogo.imageUrl} alt={jogo.title} style={styles.image} />
+        <span style={styles.levelBadge}>{jogo.level}</span>
       </div>
 
       <div style={styles.content}>
-        <h3 style={styles.title}>{title}</h3>
-        <p style={styles.description}>{description}</p>
+        <h3 style={styles.title}>{jogo.title}</h3>
+        <p style={styles.description}>{jogo.description}</p>
 
         <div style={styles.footer}>
           <div style={styles.metricBadge}>
             <Star size={12} color="#7c3aed" />
-            <span>{rating}</span>
+            <span>{jogo.rating}</span>
           </div>
           <div style={styles.metricBadge}>
             <Zap size={12} color="#7c3aed" />
-            <span>{xp}</span>
+            <span>{jogo.xp}</span>
           </div>
         </div>
       </div>
@@ -53,19 +65,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
-    maxWidth: '270px',
-    transition: 'transform 0.2s',
-  },
-  imageContainer: {
-    position: 'relative',
-    height: '140px',
-    width: '100%',
-  },
-  image: {
-    width: '100%',
     height: '100%',
-    objectFit: 'cover',
+    maxWidth: '270px',
+    cursor: 'pointer',
+    textAlign: 'left',
   },
+  imageContainer: { position: 'relative', height: '140px', width: '100%' },
+  image: { width: '100%', height: '100%', objectFit: 'cover' },
   levelBadge: {
     position: 'absolute',
     top: '10px',
@@ -78,18 +84,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '12px',
     textTransform: 'uppercase',
   },
-  content: {
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    flex: 1,
-  },
-  title: {
-    color: '#2e1065',
-    fontSize: '1rem',
-    fontWeight: '700',
-  },
+  content: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 },
+  title: { color: '#2e1065', fontSize: '1rem', fontWeight: '700' },
   description: {
     color: '#6b21a8',
     fontSize: '0.75rem',
@@ -99,12 +95,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
   },
-  footer: {
-    display: 'flex',
-    gap: '8px',
-    marginTop: 'auto',
-    paddingTop: '8px',
-  },
+  footer: { display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '8px' },
   metricBadge: {
     display: 'flex',
     alignItems: 'center',
@@ -115,5 +106,39 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.7rem',
     fontWeight: 'bold',
     color: '#6d28d9',
+  },
+  compacto: {
+    backgroundColor: '#ddd6fe',
+    border: '1px solid #818cf8',
+    borderRadius: '20px',
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    width: '100%',
+    height: '100%',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  compactoBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#c4b5fd',
+    color: '#ffffff',
+    fontSize: '0.65rem',
+    fontWeight: 'bold',
+    padding: '4px 10px',
+    borderRadius: '12px',
+  },
+  compactoTitulo: { color: '#3b00a5', fontSize: '1.3rem', fontWeight: 700 },
+  compactoDescricao: { color: '#7c3aed', fontSize: '0.8rem', lineHeight: '1.4', flex: 1 },
+  compactoRodape: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' },
+  compactoNiveis: { color: '#7c3aed', fontSize: '0.8rem', fontWeight: 600 },
+  compactoBotao: {
+    backgroundColor: '#3b00a5',
+    color: '#ffffff',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    padding: '8px 20px',
+    borderRadius: '14px',
   },
 };

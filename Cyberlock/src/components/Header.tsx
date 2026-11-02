@@ -3,9 +3,12 @@ import { ChevronDown, Shield, User, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
+import { useAuth } from '../contexts/AuthContext';
+import { Avatar } from './Avatar';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
+  const { usuario } = useAuth();
   const location = useLocation(); // Hook para saber a rota atual
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -30,7 +33,8 @@ export const Header: React.FC = () => {
     }
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   return (
     <header style={styles.header}>
@@ -100,13 +104,9 @@ export const Header: React.FC = () => {
             style={styles.profileButton} 
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
-            <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100"
-              alt="Avatar"
-              style={styles.avatar}
-            />
+            <Avatar nome={usuario?.nome ?? ''} fotoUrl={usuario?.fotoUrl} tamanho={32} />
             <div style={styles.userInfo}>
-              <span style={styles.userName}>Lina</span>
+              <span style={styles.userName}>{usuario?.nome}</span>
               <span style={styles.userRole}>Nível 3</span>
             </div>
             <ChevronDown 
@@ -217,12 +217,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '6px 14px 6px 6px',
     borderRadius: '25px',
     cursor: 'pointer',
-  },
-  avatar: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    objectFit: 'cover',
   },
   userInfo: {
     display: 'flex',

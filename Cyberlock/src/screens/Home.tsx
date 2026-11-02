@@ -1,10 +1,9 @@
 import React from 'react';
 import { Header } from '../components/Header';
-import { GameCard } from '../components/GameCard';
-import { NoticiasCard } from '../components/NoticiasCard';
+import { CarrosselJogos } from '../components/CarrosselJogos';
+import { CarrosselNoticias } from '../components/CarrosselNoticias';
 import { Footer } from '../components/Footer';
-import { Carousel } from '../components/Carrossel';
-import { Dados_Jogos, Dados_Noticias } from '../dadosCarrossel';
+import { JOGOS_LISTA } from '../dados/jogos';
 import { useNavigate } from 'react-router-dom';
 import '../main.css';
 
@@ -59,15 +58,11 @@ export const Home: React.FC = () => {
               style={styles.seeAllBtn} 
               onClick={() => navigate('/jogos')}
             >
-              Ver todos ({Dados_Jogos.length})
+              Ver todos ({JOGOS_LISTA.length})
             </button>
           </div>
 
-          <Carousel
-            items={Dados_Jogos}
-            itemWidth={270}
-            renderItem={(game) => <GameCard {...game} />}
-          />
+          <CarrosselJogos />
         </section>
 
         {/* Carrossel Noticias */}
@@ -87,11 +82,7 @@ export const Home: React.FC = () => {
             </button>
           </div>
 
-          <Carousel
-            items={Dados_Noticias}
-            itemWidth={450}
-            renderItem={(article) => <NoticiasCard {...article} />}
-          />
+          <CarrosselNoticias />
         </section>
       </main>
 

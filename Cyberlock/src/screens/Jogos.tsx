@@ -1,13 +1,15 @@
 import React from 'react';
 import { Header } from '../components/Header';
-import { GameCard } from '../components/GameCard';
+import { CarrosselJogos } from '../components/CarrosselJogos';
 import { Footer } from '../components/Footer';
-import { Carousel } from '../components/Carrossel';
-import { Dados_Jogos } from '../dadosCarrossel';
+import { JOGOS_LISTA } from '../dados/jogos';
+import { useNavigate } from 'react-router-dom';
 import { Shield, Award } from 'lucide-react';
 import '../main.css';
 
 export const Jogos: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div style={{ backgroundColor: 'var(--primary-bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
@@ -36,7 +38,7 @@ export const Jogos: React.FC = () => {
 
           <div style={styles.quickViewCard}>
             <span style={styles.quickViewTag}>VISÃO RÁPIDA</span>
-            <h3 style={styles.quickViewTitle}>{Dados_Jogos.length} desafios</h3>
+            <h3 style={styles.quickViewTitle}>{JOGOS_LISTA.length} desafios</h3>
             <p style={styles.quickViewDesc}>
               Um catálogo progressivo com níveis, XP e recompensas para transformar segurança de dados em aprendizado contínuo.
             </p>
@@ -45,7 +47,7 @@ export const Jogos: React.FC = () => {
 
         {/* Card de Jogo em Destaque */}
         <section style={styles.featuredSection}>
-          <div style={styles.featuredCard}>
+          <div style={{ ...styles.featuredCard, cursor: 'pointer' }} onClick={() => navigate('/jogos/1')}>
             <img
               src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=1200"
               alt="Jogo Destaque"
@@ -54,7 +56,7 @@ export const Jogos: React.FC = () => {
 
             <div style={styles.featuredTopBadges}>
               <span style={styles.purpleBadge}>VAZAMENTO DE DADOS</span>
-              <span style={styles.whiteBadge}>{Dados_Jogos.length} Jogos Informativos</span>
+              <span style={styles.whiteBadge}>{JOGOS_LISTA.length} Jogos Informativos</span>
             </div>
 
             <div style={styles.featuredContentCard}>
@@ -86,15 +88,11 @@ export const Jogos: React.FC = () => {
               </p>
             </div>
             <span style={styles.badgeCount}>
-              <Award size={12} /> {Dados_Jogos.length} jogos informativos
+              <Award size={12} /> {JOGOS_LISTA.length} jogos informativos
             </span>
           </div>
 
-          <Carousel
-            items={Dados_Jogos}
-            itemWidth={270}
-            renderItem={(game) => <GameCard {...game} />}
-          />
+          <CarrosselJogos />
         </section>
 
         {/* Grid de Progresso */}
