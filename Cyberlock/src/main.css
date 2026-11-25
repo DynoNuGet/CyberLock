@@ -6,7 +6,6 @@
   padding: 0;
 }
 
-/* Variáveis gerais */
 :root {
   --primary-bg: #3b00a5;
   --card-bg: #ffffff;
@@ -98,7 +97,6 @@ body {
   text-transform: uppercase;
 }
 
-/* Card de Formulário */
 .form-card {
   flex: 1;
   max-width: 400px;
@@ -121,7 +119,6 @@ body {
   text-align: center;
 }
 
-/* Elementos de Formulário */
 .input-field {
   width: 100%;
   padding: 14px 18px;
@@ -165,7 +162,6 @@ body {
   transform: scale(0.98);
 }
 
-/* Responsividade Geral */
 @media (max-width: 850px) {
   .auth-wrapper {
     flex-direction: column;

@@ -12,7 +12,6 @@ export interface UsuarioLogado {
 interface AuthContextValue {
   usuario: UsuarioLogado | null;
   carregando: boolean;
-  /** Relê os dados do Firebase (use depois de updateProfile). */
   atualizarUsuario: () => void;
 }
 

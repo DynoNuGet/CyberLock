@@ -23,10 +23,8 @@ export const AuthScreen: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
 
-    // autenticação firebase
     try {
       const credencial = await createUserWithEmailAndPassword(auth, email, password);
-      // O Firebase Auth não guarda o nome no cadastro: salvamos como displayName.
       await updateProfile(credencial.user, { displayName: name.trim() });
       atualizarUsuario();
       navigate('/home');

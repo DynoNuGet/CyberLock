@@ -6,17 +6,12 @@ import { useCarrossel } from '../hooks/useCarrossel';
 import { NOTICIAS } from '../dados/noticias';
 
 interface CarrosselNoticiasProps {
-  /** Esconde uma notícia do carrossel (ex.: a que está aberta na tela). */
   excluirId?: string;
   larguraItem?: number;
 }
 
 const ESPACO = 24;
 
-/**
- * Carrossel de notícias. Os slides são escritos um a um, na ordem em que aparecem.
- * Para incluir uma notícia nova: cadastre em dados/noticias.ts e acrescente um slide abaixo.
- */
 export const CarrosselNoticias: React.FC<CarrosselNoticiasProps> = ({ excluirId, larguraItem = 450 }) => {
   const navigate = useNavigate();
   const abrir = (id: string) => navigate(`/noticias/${id}`);

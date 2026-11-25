@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/**
- * Lógica compartilhada pelos carrosséis (jogos, notícias e lições).
- * Cada carrossel cuida do seu próprio visual; aqui fica só a mecânica
- * de medir a janela, calcular quantos itens cabem e andar para os lados.
- */
 export function useCarrossel(totalItens: number, larguraItem: number, espaco = 20) {
   const janelaRef = useRef<HTMLDivElement>(null);
   const [indice, setIndice] = useState(0);

@@ -9,7 +9,6 @@ interface SetasCarrosselProps {
 }
 
 export const SetasCarrossel: React.FC<SetasCarrosselProps> = ({ podeVoltar, podeAvancar, onVoltar, onAvancar }) => {
-  // Se tudo cabe na tela, não há o que navegar.
   if (!podeVoltar && !podeAvancar) return null;
 
   return (

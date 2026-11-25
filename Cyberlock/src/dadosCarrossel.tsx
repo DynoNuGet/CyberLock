@@ -32,8 +32,8 @@ export const Dados_Jogos: Game[] = [
   },
   {
     id: '2',
-    title: 'LGPDle',
-    description: 'Pratique os princípios básicos da LGPD com desafios interativos e simples.',
+    title: 'Golpe ou Não',
+    description: 'Analise mensagens, links e situações do dia a dia e decida: é golpe ou é legítimo?',
     level: 'Nível 2',
     rating: '4.9',
     xp: '150 XP',
@@ -50,8 +50,8 @@ export const Dados_Jogos: Game[] = [
   },
   {
     id: '4',
-    title: 'Reme ao tema',
-    description: 'Tenha domínio total sobre as configurações e tecnologia na área de proteção de dados.',
+    title: 'Rema ao Tema',
+    description: 'Decida se cada afirmação sobre senhas, privacidade e LGPD é verdade ou mito e reme até a margem.',
     level: 'Nível 4',
     rating: '4.8',
     xp: '200 XP',

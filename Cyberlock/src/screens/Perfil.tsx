@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { User, Mail, Shield, Award, KeyRound, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Shield, Award, KeyRound, CheckCircle2, Camera, Trash2 } from 'lucide-react';
 import { updateProfile, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useFotoUrl, useProgresso } from '../contexts/ProgressoContext';
+import { salvarFotoPerfil } from '../services/foto';
+import { EditorFotoPerfil } from '../components/EditorFotoPerfil';
+import { contarJogosConcluidos, tituloDoNivel } from '../services/progresso';
+import { JOGOS_LISTA } from '../dados/jogos';
 import { Avatar } from '../components/Avatar';
 import '../main.css';
 
+const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp'];
+const TAMANHO_MAXIMO_FOTO = 10 * 1024 * 1024;
+
 export const Perfil: React.FC = () => {
   const { usuario, atualizarUsuario } = useAuth();
+  const { xpTotal, nivelUsuario, jogos, fotoPerfil } = useProgresso();
+  const fotoUrl = useFotoUrl();
+  const inputFoto = useRef<HTMLInputElement>(null);
+  const [arquivoFoto, setArquivoFoto] = useState<File | null>(null);
+  const [salvandoFoto, setSalvandoFoto] = useState(false);
   const [name, setName] = useState(usuario?.nome ?? '');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -32,6 +45,37 @@ export const Perfil: React.FC = () => {
       console.error('Erro ao salvar perfil:', error);
       setSuccessMsg('');
       setErrorMsg('Não foi possível salvar as alterações. Tente novamente.');
+    }
+  };
+
+  const escolherArquivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivo = e.target.files?.[0];
+    e.target.value = '';
+    if (!arquivo) return;
+    setSuccessMsg('');
+    if (!TIPOS_FOTO.includes(arquivo.type)) {
+      setErrorMsg('Escolha uma imagem JPG, PNG ou WebP.');
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_FOTO) {
+      setErrorMsg('A imagem é muito grande. Escolha uma de até 10 MB.');
+      return;
+    }
+    setErrorMsg('');
+    setArquivoFoto(arquivo);
+  };
+
+  const salvarFoto = async (dataUrl: string | null) => {
+    if (!usuario) return;
+    setSalvandoFoto(true);
+    const resultado = await salvarFotoPerfil(usuario.uid, dataUrl);
+    setSalvandoFoto(false);
+    setArquivoFoto(null);
+    if (resultado.status === 'ok') {
+      mostrarSucesso(dataUrl ? 'Foto de perfil atualizada!' : 'Foto de perfil removida.');
+    } else {
+      setSuccessMsg('');
+      setErrorMsg(`A foto foi guardada só neste navegador. ${resultado.mensagem}`);
     }
   };
 
@@ -64,21 +108,50 @@ export const Perfil: React.FC = () => {
 
         <div style={styles.contentGrid}>
           <div style={styles.profileSummaryCard}>
-            <div style={styles.avatarWrapper}>
-              <Avatar nome={usuario?.nome ?? ''} fotoUrl={usuario?.fotoUrl} tamanho={84} />
+            <div style={styles.avatarArea}>
+              <div style={{ ...styles.avatarWrapper, marginBottom: 0 }}>
+                <Avatar nome={usuario?.nome ?? ''} fotoUrl={fotoUrl} tamanho={84} />
+              </div>
+              <button
+                type="button"
+                onClick={() => inputFoto.current?.click()}
+                style={styles.botaoCamera}
+                aria-label="Alterar foto de perfil"
+                title="Alterar foto de perfil"
+              >
+                <Camera size={16} color="#ffffff" />
+              </button>
+              <input
+                ref={inputFoto}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={escolherArquivo}
+                style={{ display: 'none' }}
+                aria-label="Escolher foto de perfil"
+              />
+            </div>
+            <div style={styles.acoesFoto}>
+              <button type="button" onClick={() => inputFoto.current?.click()} style={styles.linkFoto}>
+                Alterar foto
+              </button>
+              {fotoPerfil && (
+                <button type="button" onClick={() => salvarFoto(null)} disabled={salvandoFoto} style={{ ...styles.linkFoto, color: '#b91c1c' }}>
+                  <Trash2 size={13} /> Remover
+                </button>
+              )}
             </div>
             <h2 style={styles.profileName}>{usuario?.nome}</h2>
-            <span style={styles.roleBadge}>Nível 3 • Analista</span>
+            <span style={styles.roleBadge}>Nível {nivelUsuario} • {tituloDoNivel(nivelUsuario)}</span>
 
             <div style={styles.statsRow}>
               <div style={styles.statItem}>
                 <Award size={18} color="#7c3aed" />
-                <span style={styles.statValue}>450 XP</span>
+                <span style={styles.statValue}>{xpTotal} XP</span>
                 <span style={styles.statLabel}>Pontuação</span>
               </div>
               <div style={styles.statItem}>
                 <Shield size={18} color="#7c3aed" />
-                <span style={styles.statValue}>3 / 5</span>
+                <span style={styles.statValue}>{contarJogosConcluidos(jogos)} / {JOGOS_LISTA.length}</span>
                 <span style={styles.statLabel}>Jogos Concluídos</span>
               </div>
             </div>
@@ -142,6 +215,15 @@ export const Perfil: React.FC = () => {
       </main>
 
       <Footer />
+
+      {arquivoFoto && (
+        <EditorFotoPerfil
+          arquivo={arquivoFoto}
+          salvando={salvandoFoto}
+          onCancelar={() => setArquivoFoto(null)}
+          onSalvar={salvarFoto}
+        />
+      )}
     </div>
   );
 };
@@ -201,6 +283,43 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     textAlign: 'center',
     boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+  },
+  avatarArea: {
+    position: 'relative',
+    marginBottom: '8px',
+  },
+  botaoCamera: {
+    position: 'absolute',
+    right: '-2px',
+    bottom: '-2px',
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    border: '3px solid #ffffff',
+    backgroundColor: '#7c3aed',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    padding: 0,
+  },
+  acoesFoto: {
+    display: 'flex',
+    gap: '14px',
+    marginBottom: '12px',
+  },
+  linkFoto: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    background: 'none',
+    border: 'none',
+    color: '#6d28d9',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    padding: 0,
   },
   avatarWrapper: {
     width: '90px',

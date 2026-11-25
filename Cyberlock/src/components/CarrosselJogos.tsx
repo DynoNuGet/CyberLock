@@ -6,17 +6,12 @@ import { useCarrossel } from '../hooks/useCarrossel';
 import { JOGOS } from '../dados/jogos';
 
 interface CarrosselJogosProps {
-  /** Esconde um jogo do carrossel (ex.: o jogo da tela atual). */
   excluirId?: string;
   variante?: 'padrao' | 'compacto';
 }
 
 const ESPACO = 20;
 
-/**
- * Carrossel de jogos. Os slides são escritos um a um, na ordem em que aparecem.
- * Para incluir um jogo novo: cadastre em dados/jogos.ts e acrescente um slide abaixo.
- */
 export const CarrosselJogos: React.FC<CarrosselJogosProps> = ({ excluirId, variante = 'padrao' }) => {
   const navigate = useNavigate();
   const abrir = (id: string) => navigate(`/jogos/${id}`);
@@ -56,7 +51,6 @@ export const CarrosselJogos: React.FC<CarrosselJogosProps> = ({ excluirId, varia
             ...styles.trilho,
             gap: `${ESPACO}px`,
             transform: `translateX(-${deslocamento}px)`,
-            // largura dos slides vem do hook, para acompanhar telas pequenas
             ['--largura-slide' as string]: `${larguraSlide}px`,
           }}
         >

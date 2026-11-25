@@ -21,7 +21,6 @@ export const Login: React.FC = () => {
     setErrorMsg('');
 
     try {
-      // autenticação firebase
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Login efetuado com sucesso!');
       navigate('/home');

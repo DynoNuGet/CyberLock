@@ -1,56 +1,70 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Lock, Star, NotebookText } from 'lucide-react';
+import { Check, Lock, Star, NotebookText, Zap } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { NaoEncontrado } from '../components/NaoEncontrado';
 import { CarrosselLicoes } from '../components/CarrosselLicoes';
 import { CarrosselJogos } from '../components/CarrosselJogos';
 import { obterJogo } from '../dados/jogos';
+import { useProgresso } from '../contexts/ProgressoContext';
+import { Placar } from '../components/Placar';
+import { chaveDia, META_XP_DIARIA } from '../services/progresso';
 import '../main.css';
+import '../games/jogo.css';
 
-// Por enquanto os cadeados são só visuais: todas as fases abrem para facilitar o desenvolvimento.
-// Quando existir controle de progresso, troque para true e passe o nível liberado do usuário.
 const BLOQUEAR_NIVEIS_FUTUROS = false;
-const NIVEL_LIBERADO = 1;
 
 const TAMANHO_TRILHA = 340;
 const RAIO_TRILHA = 132;
 const TAMANHO_NO = 56;
 
-type AbaTrilha = 'inicio' | 'pratica' | 'placar';
+type AbaTrilha = 'inicio' | 'placar';
 
-const XP_SEMANA = [
-  { dia: 'Seg', xp: 0 },
-  { dia: 'Ter', xp: 0 },
-  { dia: 'Qua', xp: 0 },
-  { dia: 'Qui', xp: 0 },
-  { dia: 'Sex', xp: 0 },
-  { dia: 'Sáb', xp: 0 },
-  { dia: 'Dom', xp: 13 },
-];
+const NOMES_DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
 export const JogoDetalhe: React.FC = () => {
   const { jogoId } = useParams();
   const navigate = useNavigate();
   const [aba, setAba] = useState<AbaTrilha>('inicio');
   const jogo = obterJogo(jogoId);
+  const { jogos, xpPorDia } = useProgresso();
 
   if (!jogo) {
     return <NaoEncontrado mensagem="Jogo não encontrado." voltarPara="/jogos" textoBotao="Ver todos os jogos" />;
   }
 
-  const abrirNivel = (nivelId: string, indice: number) => {
-    if (BLOQUEAR_NIVEIS_FUTUROS && indice + 1 > NIVEL_LIBERADO) return;
+  const progressoJogo = jogos[jogo.id] ?? {};
+  const primeiroPendente = jogo.niveis
+    .filter((n) => n.id !== 'infinito')
+    .findIndex((n) => !progressoJogo[n.id]?.concluido);
+  const todosConcluidos = primeiroPendente === -1;
+  const numerados = jogo.niveis.filter((n) => n.id !== 'infinito');
+  const niveisConcluidos = numerados.filter((n) => progressoJogo[n.id]?.concluido).length;
+  const totalEstrelas = Object.values(progressoJogo).reduce((soma, n) => soma + (n.estrelas ?? 0), 0);
+  const circunferencia = 2 * Math.PI * RAIO_TRILHA;
+  const fracaoConcluida = niveisConcluidos / jogo.niveis.length;
+  const competicaoLiberada = niveisConcluidos >= 2;
+
+  const abrirNivel = (nivelId: string, bloqueado: boolean) => {
+    if (BLOQUEAR_NIVEIS_FUTUROS && bloqueado) return;
     navigate(`/jogos/${jogo.id}/nivel/${nivelId}`);
   };
 
-  // Gráfico de XP semanal (escala 0–20)
+  const hoje = new Date();
+  const segunda = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - ((hoje.getDay() + 6) % 7));
+  const xpSemana = NOMES_DIAS.map((dia, i) => ({
+    dia,
+    xp: xpPorDia[chaveDia(new Date(segunda.getFullYear(), segunda.getMonth(), segunda.getDate() + i))] ?? 0,
+  }));
+  const xpHoje = xpPorDia[chaveDia(hoje)] ?? 0;
+
+  const escalaMax = Math.max(20, Math.ceil(Math.max(...xpSemana.map((d) => d.xp)) / 20) * 20);
   const larguraGrafico = 260;
   const alturaGrafico = 110;
-  const pontos = XP_SEMANA.map((item, i) => {
-    const x = 20 + (i * (larguraGrafico - 30)) / (XP_SEMANA.length - 1);
-    const y = alturaGrafico - (Math.min(item.xp, 20) / 20) * alturaGrafico;
+  const pontos = xpSemana.map((item, i) => {
+    const x = 20 + (i * (larguraGrafico - 30)) / (xpSemana.length - 1);
+    const y = alturaGrafico - (item.xp / escalaMax) * alturaGrafico;
     return { x, y, ...item };
   });
 
@@ -58,7 +72,6 @@ export const JogoDetalhe: React.FC = () => {
     <div style={{ backgroundColor: 'var(--primary-bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
-      {/* Lições */}
       <section style={styles.secaoLicoes}>
         <div style={styles.conteudo}>
           <div style={styles.linhaTitulo}>
@@ -69,7 +82,6 @@ export const JogoDetalhe: React.FC = () => {
         </div>
       </section>
 
-      {/* Trilha */}
       <section style={styles.secaoTrilha}>
         <div style={styles.conteudo}>
           <h2 style={styles.tituloSecao}>Trilha de aprendizado</h2>
@@ -78,7 +90,6 @@ export const JogoDetalhe: React.FC = () => {
             <nav style={styles.menuLateral}>
               {([
                 ['inicio', 'INÍCIO'],
-                ['pratica', 'PRÁTICA'],
                 ['placar', 'PLACAR'],
               ] as [AbaTrilha, string][]).map(([chave, rotulo]) => (
                 <button
@@ -102,44 +113,85 @@ export const JogoDetalhe: React.FC = () => {
                 </button>
               </div>
 
-              <div style={{ ...styles.trilha, width: TAMANHO_TRILHA, height: TAMANHO_TRILHA }}>
-                <div
-                  style={{
-                    ...styles.anel,
-                    width: RAIO_TRILHA * 2,
-                    height: RAIO_TRILHA * 2,
-                    left: TAMANHO_TRILHA / 2 - RAIO_TRILHA,
-                    top: TAMANHO_TRILHA / 2 - RAIO_TRILHA,
-                  }}
-                />
-                {jogo.niveis.map((nivel, i) => {
-                  const angulo = -Math.PI / 2 + (i * 2 * Math.PI) / jogo.niveis.length;
-                  const x = TAMANHO_TRILHA / 2 + RAIO_TRILHA * Math.cos(angulo) - TAMANHO_NO / 2;
-                  const y = TAMANHO_TRILHA / 2 + RAIO_TRILHA * Math.sin(angulo) - TAMANHO_NO / 2;
-                  const atual = i + 1 === NIVEL_LIBERADO;
-                  const bloqueado = i + 1 > NIVEL_LIBERADO;
+              {aba === 'inicio' ? (
+                <div style={{ ...styles.trilha, width: TAMANHO_TRILHA, height: TAMANHO_TRILHA }}>
+                  <svg width={TAMANHO_TRILHA} height={TAMANHO_TRILHA} style={styles.anelSvg} aria-hidden="true">
+                    <circle cx={TAMANHO_TRILHA / 2} cy={TAMANHO_TRILHA / 2} r={RAIO_TRILHA} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="10" strokeDasharray="2 12" strokeLinecap="round" />
+                    <circle
+                      cx={TAMANHO_TRILHA / 2}
+                      cy={TAMANHO_TRILHA / 2}
+                      r={RAIO_TRILHA}
+                      fill="none"
+                      stroke="#4ade80"
+                      strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${circunferencia * fracaoConcluida} ${circunferencia}`}
+                      transform={`rotate(-90 ${TAMANHO_TRILHA / 2} ${TAMANHO_TRILHA / 2})`}
+                      style={{ transition: 'stroke-dasharray 0.8s ease' }}
+                    />
+                  </svg>
+                  <div style={styles.centroTrilha}>
+                    <strong style={styles.centroValor}>
+                      {niveisConcluidos}/{numerados.length}
+                    </strong>
+                    <span style={styles.centroRotulo}>níveis concluídos</span>
+                    <span style={styles.centroEstrelas}>
+                      <Star size={14} color="#facc15" fill="#facc15" /> {totalEstrelas}
+                    </span>
+                  </div>
+                  {jogo.niveis.map((nivel, i) => {
+                    const angulo = -Math.PI / 2 + (i * 2 * Math.PI) / jogo.niveis.length;
+                    const x = TAMANHO_TRILHA / 2 + RAIO_TRILHA * Math.cos(angulo) - TAMANHO_NO / 2;
+                    const y = TAMANHO_TRILHA / 2 + RAIO_TRILHA * Math.sin(angulo) - TAMANHO_NO / 2;
+                    const concluido = !!progressoJogo[nivel.id]?.concluido;
+                    const atual = !concluido && (nivel.id === 'infinito' ? todosConcluidos : i === primeiroPendente);
+                    const bloqueado = !concluido && !atual;
 
-                  return (
-                    <button
-                      key={nivel.id}
-                      onClick={() => abrirNivel(nivel.id, i)}
-                      title={`Nível ${nivel.id}: ${nivel.titulo}`}
-                      aria-label={`Nível ${nivel.id}: ${nivel.titulo}`}
-                      style={{
-                        ...styles.noTrilha,
-                        left: x,
-                        top: y,
-                        width: TAMANHO_NO,
-                        height: TAMANHO_NO,
-                        ...(atual ? styles.noAtual : styles.noBloqueado),
-                      }}
-                    >
-                      {atual && <Star size={26} color="#ffffff" fill="#ffffff" />}
-                      {bloqueado && <Lock size={20} color="#9ca3af" />}
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={nivel.id}
+                        onClick={() => abrirNivel(nivel.id, bloqueado)}
+                        className={atual ? 'jg-pulso' : undefined}
+                        title={`${nivel.id === 'infinito' ? '' : 'Nível '}${nivel.id === 'infinito' ? nivel.titulo : `${nivel.id}: ${nivel.titulo}`} (${concluido ? 'concluído' : atual ? 'próximo' : 'bloqueado'})`}
+                        aria-label={`Nível ${nivel.id}: ${nivel.titulo}`}
+                        style={{
+                          ...styles.noTrilha,
+                          left: x,
+                          top: y,
+                          width: TAMANHO_NO,
+                          height: TAMANHO_NO,
+                          ...(concluido ? styles.noConcluido : atual ? styles.noAtual : styles.noBloqueado),
+                        }}
+                      >
+                        {nivel.id === 'infinito' ? (
+                          <Zap size={26} color={concluido || atual ? '#ffffff' : '#9ca3af'} fill={concluido || atual ? '#ffffff' : 'none'} />
+                        ) : (
+                          <>
+                            {concluido && <Check size={28} color="#ffffff" strokeWidth={3} />}
+                            {atual && <Star size={26} color="#ffffff" fill="#ffffff" />}
+                            {bloqueado && <Lock size={20} color="#9ca3af" />}
+                          </>
+                        )}
+                        {nivel.id !== 'infinito' && <span style={styles.numeroNo}>{nivel.id}</span>}
+                        {concluido && (progressoJogo[nivel.id]?.estrelas ?? 0) > 0 && (
+                          <span style={styles.estrelasNo}>
+                            {Array.from({ length: progressoJogo[nivel.id]?.estrelas ?? 0 }, (_, k) => (
+                              <Star key={k} size={11} color="#facc15" fill="#facc15" />
+                            ))}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={styles.blocoPlacar}>
+                  <Placar jogoId={jogo.id} titulo={`Placar · Modo Infinito de ${jogo.title}`} />
+                  <button style={styles.botaoPro} onClick={() => navigate(`/jogos/${jogo.id}/nivel/infinito`)}>
+                    JOGAR MODO INFINITO
+                  </button>
+                </div>
+              )}
             </div>
 
             <aside style={styles.colunaDireita}>
@@ -152,11 +204,22 @@ export const JogoDetalhe: React.FC = () => {
               </div>
 
               <div style={styles.cartaoLateral}>
-                <h3 style={styles.lateralTitulo}>Desbloqueie a competição!</h3>
-                <div style={styles.linhaCompeticao}>
-                  <Lock size={28} color="#e9d5ff" />
-                  <p style={styles.lateralTextoClaro}>Complete 2 atividades ou mais para desbloquear</p>
-                </div>
+                <h3 style={styles.lateralTitulo}>{competicaoLiberada ? 'Competição liberada!' : 'Desbloqueie a competição!'}</h3>
+                {competicaoLiberada ? (
+                  <>
+                    <p style={styles.lateralTexto}>Veja quem está no topo do Modo Infinito.</p>
+                    <button style={styles.botaoPro} onClick={() => setAba('placar')}>
+                      VER PLACAR
+                    </button>
+                  </>
+                ) : (
+                  <div style={styles.linhaCompeticao}>
+                    <Lock size={28} color="#e9d5ff" />
+                    <p style={styles.lateralTextoClaro}>
+                      Complete mais {2 - niveisConcluidos} {2 - niveisConcluidos === 1 ? 'nível' : 'níveis'} para desbloquear
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div style={styles.cartaoLateral}>
@@ -167,14 +230,15 @@ export const JogoDetalhe: React.FC = () => {
                 <div style={styles.metaDiaria}>
                   <span style={styles.lateralTexto}>Meta diária</span>
                   <div style={styles.barraMetaFundo}>
-                    <div style={{ ...styles.barraMetaPreenchida, width: `${(13 / 20) * 100}%` }} />
+                    <div style={{ ...styles.barraMetaPreenchida, width: `${Math.min(100, (xpHoje / META_XP_DIARIA) * 100)}%` }} />
                   </div>
-                  <span style={styles.metaValor}>13/20 XP</span>
+                  <span style={styles.metaValor}>{xpHoje}/{META_XP_DIARIA} XP</span>
                 </div>
 
                 <svg viewBox={`0 0 ${larguraGrafico} ${alturaGrafico + 28}`} style={{ width: '100%' }} role="img" aria-label="XP ganho na semana">
-                  {[0, 5, 10, 15, 20].map((marca) => {
-                    const y = alturaGrafico - (marca / 20) * alturaGrafico;
+                  {[0, 0.25, 0.5, 0.75, 1].map((fracao) => {
+                    const marca = Math.round(fracao * escalaMax);
+                    const y = alturaGrafico - fracao * alturaGrafico;
                     return (
                       <g key={marca}>
                         <line x1="20" x2={larguraGrafico} y1={y} y2={y} stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
@@ -201,7 +265,6 @@ export const JogoDetalhe: React.FC = () => {
         </div>
       </section>
 
-      {/* Mais jogos */}
       <section style={styles.secaoJogos}>
         <div style={styles.conteudo}>
           <div style={styles.linhaTitulo}>
@@ -240,9 +303,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   botaoGuia: { display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none', padding: '10px 18px', borderRadius: '16px', fontWeight: 'bold', fontSize: '0.75rem', cursor: 'pointer' },
 
   trilha: { position: 'relative', maxWidth: '100%' },
-  anel: { position: 'absolute', borderRadius: '50%', border: '18px solid #c4b5fd', boxSizing: 'border-box' },
   noTrilha: { position: 'absolute', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.15s' },
+  blocoPlacar: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%' },
+  anelSvg: { position: 'absolute', left: 0, top: 0 },
+  centroTrilha: { position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textAlign: 'center', width: '150px' },
+  centroValor: { color: '#ffffff', fontSize: '2rem', fontFamily: 'var(--font-pixel)' },
+  centroRotulo: { color: '#c4b5fd', fontSize: '0.8rem', fontWeight: 600 },
+  centroEstrelas: { display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fde68a', fontSize: '0.85rem', fontWeight: 700 },
+  numeroNo: { position: 'absolute', right: '-4px', top: '-4px', minWidth: '22px', height: '22px', borderRadius: '11px', backgroundColor: '#1d0f2e', color: '#ffffff', border: '2px solid #ffffff', fontSize: '0.72rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  estrelasNo: { position: 'absolute', bottom: '-14px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '1px' },
   noAtual: { backgroundColor: '#3b82f6', boxShadow: '0 0 0 6px #7c3aed, 0 6px 0 rgba(0,0,0,0.25)' },
+  noConcluido: { backgroundColor: '#16a34a', boxShadow: '0 6px 0 #166534' },
   noBloqueado: { backgroundColor: '#e5e7eb', boxShadow: '0 6px 0 #bdbdbd' },
 
   colunaDireita: { width: '320px', maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: '18px' },

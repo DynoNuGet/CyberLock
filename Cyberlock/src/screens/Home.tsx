@@ -15,7 +15,6 @@ export const Home: React.FC = () => {
       <Header />
 
       <main style={styles.mainContainer}>
-        {/* Hero Section */}
         <section style={styles.heroSection}>
           <div style={styles.heroText}>
             <span style={styles.categoryBadge}>PROTEÇÃO DE DADOS</span>
@@ -45,7 +44,6 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* Carrossel Jogos */}
         <section style={styles.section}>
           <div style={styles.sectionHeader}>
             <div>
@@ -65,7 +63,6 @@ export const Home: React.FC = () => {
           <CarrosselJogos />
         </section>
 
-        {/* Carrossel Noticias */}
         <section style={styles.section}>
           <div style={styles.sectionHeader}>
             <div>

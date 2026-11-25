@@ -5,11 +5,18 @@ import { Footer } from '../components/Footer';
 import { NaoEncontrado } from '../components/NaoEncontrado';
 import { CarrosselJogos } from '../components/CarrosselJogos';
 import { obterJogo } from '../dados/jogos';
+import { AnalisarSenhas } from '../games/AnalisarSenhas';
+import { RemaAoTema } from '../games/RemaAoTema';
+import { GolpeOuNao } from '../games/GolpeOuNao';
+import { MinimoPossivel } from '../games/MinimoPossivel';
+import { useProgresso } from '../contexts/ProgressoContext';
+import '../games/jogo.css';
 import '../main.css';
 
 export const JogoNivel: React.FC = () => {
   const { jogoId, nivelId } = useParams();
   const navigate = useNavigate();
+  const { jogos } = useProgresso();
   const jogo = obterJogo(jogoId);
   const nivel = jogo?.niveis.find((n) => n.id === nivelId);
 
@@ -23,6 +30,11 @@ export const JogoNivel: React.FC = () => {
     );
   }
 
+  const indiceNivel = jogo.niveis.findIndex((n) => n.id === nivel.id);
+  const proximoNivel = jogo.niveis[indiceNivel + 1];
+  const infinito = nivel.id === 'infinito';
+  const totalNumerados = jogo.niveis.filter((n) => n.id !== 'infinito').length;
+
   return (
     <div style={styles.pagina}>
       <Header />
@@ -30,20 +42,34 @@ export const JogoNivel: React.FC = () => {
       <main style={styles.principal}>
         <section style={styles.cabecalho}>
           <h1 style={styles.titulo}>
-            {jogo.title} - Nível {nivel.id}/{jogo.niveis.length}
+            {infinito ? `${jogo.title} - Modo Infinito` : `${jogo.title} - Nível ${nivel.id}/${totalNumerados}`}
           </h1>
           <p style={styles.instrucao}>{nivel.instrucao}</p>
         </section>
 
-        {/* Área reservada para a implementação do jogo */}
         <section
           id="area-do-jogo"
           data-jogo={jogo.id}
           data-nivel={nivel.id}
+          className="jg-area"
           style={styles.areaJogo}
           aria-label="Área do jogo"
         >
-          {/* TODO: renderizar aqui o jogo de "jogo.id" no nível "nivel.id" */}
+          {(() => {
+            const propsDoJogo = {
+              nivelId: nivel.id,
+              proximoNivelId: proximoNivel?.id,
+              onAbrirNivel: (id: string) => {
+                navigate(`/jogos/${jogo.id}/nivel/${id}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              },
+            };
+            if (jogo.id === '1') return <AnalisarSenhas {...propsDoJogo} />;
+            if (jogo.id === '2') return <GolpeOuNao {...propsDoJogo} />;
+            if (jogo.id === '3') return <MinimoPossivel {...propsDoJogo} />;
+            if (jogo.id === '4') return <RemaAoTema {...propsDoJogo} />;
+            return <p style={styles.emBreve}>Este jogo estará disponível em breve.</p>;
+          })()}
         </section>
 
         <section style={styles.secao}>
@@ -53,6 +79,7 @@ export const JogoNivel: React.FC = () => {
           <div style={styles.gradeNiveis}>
             {jogo.niveis.map((item) => {
               const atual = item.id === nivel.id;
+              const concluido = !!jogos[jogo.id]?.[item.id]?.concluido;
               return (
                 <div
                   key={item.id}
@@ -69,7 +96,7 @@ export const JogoNivel: React.FC = () => {
                 >
                   <div style={styles.cartaoNivelTopo}>
                     <span style={{ ...styles.selo, ...(atual ? styles.seloClaro : styles.seloEscuro) }}>Nível {item.id}</span>
-                    <span style={{ ...styles.selo, ...(atual ? styles.seloAtual : styles.seloExplorar) }}>{atual ? 'Atual' : 'Explorar'}</span>
+                    <span style={{ ...styles.selo, ...(atual ? styles.seloAtual : styles.seloExplorar) }}>{atual ? 'Atual' : concluido ? 'Concluído' : 'Explorar'}</span>
                   </div>
                   <h3 style={{ ...styles.cartaoNivelTitulo, color: atual ? '#3b00a5' : '#ffffff' }}>{item.titulo}</h3>
                   <p style={{ ...styles.cartaoNivelTexto, color: atual ? '#4c1d95' : 'rgba(255,255,255,0.85)' }}>{item.descricao}</p>
@@ -97,7 +124,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   cabecalho: { display: 'flex', flexDirection: 'column', gap: '12px' },
   titulo: { color: '#d8c4ff', fontSize: '2rem', fontWeight: 700 },
   instrucao: { color: '#ffffff', fontSize: '1.6rem', fontWeight: 500, lineHeight: 1.4 },
-  areaJogo: { width: '100%', aspectRatio: '16 / 9', minHeight: '280px', backgroundColor: '#d9d9d9', borderRadius: '24px' },
+  areaJogo: { width: '100%', minHeight: '520px', padding: '28px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' },
+  emBreve: { color: '#ede9fe', textAlign: 'center', fontWeight: 600 },
   secao: { display: 'flex', flexDirection: 'column', gap: '8px' },
   tituloSecao: { color: '#d8c4ff', fontSize: '1.5rem', fontWeight: 600 },
   subtituloSecao: { color: '#ffffff', fontSize: '0.85rem', marginBottom: '14px' },

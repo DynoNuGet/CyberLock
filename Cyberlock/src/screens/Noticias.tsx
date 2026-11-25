@@ -26,7 +26,6 @@ export const Noticias: React.FC = () => {
           </div>
         </section>
 
-        {/* Carrossel Noticias */}
         <section style={styles.section}>
           <CarrosselNoticias larguraItem={480} />
         </section>

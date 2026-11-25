@@ -5,15 +5,17 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Avatar } from './Avatar';
+import { useFotoUrl, useProgresso } from '../contexts/ProgressoContext';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const { usuario } = useAuth();
-  const location = useLocation(); // Hook para saber a rota atual
+  const { nivelUsuario } = useProgresso();
+  const fotoUrl = useFotoUrl();
+  const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fecha o pop-up se o utilizador clicar fora dele
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -104,10 +106,10 @@ export const Header: React.FC = () => {
             style={styles.profileButton} 
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
-            <Avatar nome={usuario?.nome ?? ''} fotoUrl={usuario?.fotoUrl} tamanho={32} />
+            <Avatar nome={usuario?.nome ?? ''} fotoUrl={fotoUrl} tamanho={32} />
             <div style={styles.userInfo}>
               <span style={styles.userName}>{usuario?.nome}</span>
-              <span style={styles.userRole}>Nível 3</span>
+              <span style={styles.userRole}>Nível {nivelUsuario}</span>
             </div>
             <ChevronDown 
               size={16} 

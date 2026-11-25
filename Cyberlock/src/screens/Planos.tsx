@@ -1,69 +1,21 @@
 import React from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { Shield, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Shield, Check } from 'lucide-react';
+import { PLANOS } from '../dados/planos';
+import type { Plano } from '../dados/planos';
 import '../main.css';
 
-interface PricingPlan {
-  badge?: string;
-  badgeType?: 'primary' | 'popular' | 'discount';
-  title: string;
-  price?: string;
-  period?: string;
-  features: string[];
-  buttonText: string;
-  isPopular?: boolean;
-}
-
-interface Testimonial {
-  name: string;
-  comment: string;
-  avatarUrl: string;
-}
-
 export const Planos: React.FC = () => {
-  const plans: PricingPlan[] = [
-    {
-      badge: 'INICIANTE',
-      badgeType: 'primary',
-      title: 'Grátis',
-      features: [
-        'Jogos de aprendizado',
-        'Acompanhamento de progresso básico',
-        'Certificado de conclusão',
-        'Modo competitivo',
-      ],
-      buttonText: 'Comece agora',
-    },
-    {
-      badge: 'MAIS POPULAR',
-      badgeType: 'popular',
-      title: 'PRO',
-      price: '$24',
-      period: '/MÊS',
-      features: [
-        'Personalização de personagens ilimitada',
-        'Sem anúncios',
-        'Suporte prioritário',
-      ],
-      buttonText: 'Seja Pro',
-      isPopular: true,
-    },
-    {
-      badge: 'PLANO ANUAL',
-      badgeType: 'discount',
-      title: '27% DE DESCONTO',
-      price: '$210',
-      period: '/ANO',
-      features: [
-        'Maior economia',
-        'Personalização de personagens ilimitada',
-        'Sem anúncios',
-        'Suporte prioritário',
-      ],
-      buttonText: 'Contrate agora',
-    },
-  ];
+  const navigate = useNavigate();
+
+  const escolherPlano = (plano: Plano) => {
+    navigate(plano.id === 'gratis' ? '/jogos' : `/pagamento/${plano.id}`);
+    window.scrollTo({ top: 0 });
+  };
+
+  const plans = PLANOS;
 
   const gamesHighlights = [
     {
@@ -75,15 +27,15 @@ export const Planos: React.FC = () => {
       rating: '4/5',
     },
     {
-      title: 'LGPDle',
-      description: 'Pratique a tomada de decisões rápidas sobre consentimento, privacidade e uso responsável de dados.',
+      title: 'Golpe ou Não',
+      description: 'Treine o olhar para identificar golpes, phishing e fraudes em mensagens, links e ofertas.',
       gamesCount: '12 JOGOS',
       xp: '+150 XP',
       level: 'NÍVEL 2',
       rating: '4/5',
     },
     {
-      title: 'Mínimo necessário',
+      title: 'Mínimo possível',
       description: 'Aprenda a compartilhar apenas o necessário e a manter seus dados protegidos em situações do dia a dia.',
       gamesCount: '12 JOGOS',
       xp: '+180 XP',
@@ -91,35 +43,12 @@ export const Planos: React.FC = () => {
       rating: '4/5',
     },
     {
-      title: 'Reme ao Tema',
-      description: 'Revise conceitos-chave sobre vazamentos de dados e reforce sua rotina de proteção com desafios rápidos.',
+      title: 'Rema ao Tema',
+      description: 'Teste seus conhecimentos com afirmações de verdade ou mito sobre senhas, privacidade e LGPD.',
       gamesCount: '12 GAMES',
       xp: '+200 XP',
       level: 'NÍVEL 4',
       rating: '4/5',
-    },
-  ];
-
-  const testimonials: Testimonial[] = [
-    {
-      name: 'Anderson Julião',
-      comment: '...',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-    },
-    {
-      name: 'Davi Nathan',
-      comment: '...',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-    },
-    {
-      name: 'Joaquim Meirelles',
-      comment: '...',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-    },
-    {
-      name: 'Bulkin Simons',
-      comment: '...',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     },
   ];
 
@@ -138,7 +67,6 @@ export const Planos: React.FC = () => {
           <p style={styles.subtitle}>Escolha o plano que melhor se encaixe com você!</p>
         </section>
 
-        {/* Grid de Planos */}
         <section style={styles.plansGrid}>
           {plans.map((plan, index) => (
             <div
@@ -187,6 +115,7 @@ export const Planos: React.FC = () => {
               </ul>
 
               <button
+                onClick={() => escolherPlano(plan)}
                 style={{
                   ...styles.planButton,
                   ...(plan.isPopular ? styles.popularButton : styles.defaultButton),
@@ -219,29 +148,6 @@ export const Planos: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.sectionCenterTitle}>O que nossos usuários tem a dizer?</h2>
-
-          <div style={styles.testimonialsGrid}>
-            {testimonials.map((item, index) => (
-              <div key={index} style={styles.testimonialCard}>
-                <img src={item.avatarUrl} alt={item.name} style={styles.avatar} />
-                <h3 style={styles.testimonialName}>{item.name}</h3>
-                <p style={styles.testimonialComment}>{item.comment}</p>
-              </div>
-            ))}
-          </div>
-
-          <div style={styles.navControls}>
-            <button style={styles.arrowBtn} aria-label="Anterior">
-              <ChevronLeft size={18} />
-            </button>
-            <button style={styles.arrowBtn} aria-label="Próximo">
-              <ChevronRight size={18} />
-            </button>
           </div>
         </section>
       </main>
@@ -397,12 +303,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ffffff',
     textShadow: '2px 2px 0px #000',
   },
-  sectionCenterTitle: {
-    fontSize: '1.4rem',
-    fontWeight: 'bold',
-    color: '#ffffff',
-    textAlign: 'center',
-  },
   sectionSubtitle: {
     fontSize: '0.85rem',
     color: 'rgba(255, 255, 255, 0.7)',
@@ -474,56 +374,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
     padding: '3px 8px',
     borderRadius: '10px',
-  },
-  testimonialsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-    gap: '20px',
-  },
-  testimonialCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: '20px',
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-  },
-  avatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    marginBottom: '12px',
-  },
-  testimonialName: {
-    fontSize: '0.95rem',
-    fontWeight: 'bold',
-    color: '#1e1b4b',
-    marginBottom: '6px',
-  },
-  testimonialComment: {
-    fontSize: '0.75rem',
-    color: '#6b7280',
-    lineHeight: '1.4',
-  },
-  navControls: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'center',
-    marginTop: '10px',
-  },
-  arrowBtn: {
-    backgroundColor: '#7c3aed',
-    border: 'none',
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#ffffff',
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
   },
 };

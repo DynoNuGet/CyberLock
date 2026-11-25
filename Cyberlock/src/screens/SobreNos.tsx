@@ -7,8 +7,6 @@ import '../main.css';
 interface TeamMember {
   name: string;
   role: string;
-  bio: string;
-  avatarUrl: string;
 }
 
 export const SobreNos: React.FC = () => {
@@ -16,26 +14,18 @@ export const SobreNos: React.FC = () => {
     {
       name: 'Anderson Julião',
       role: 'Líder',
-      bio: 'Lorem Ipsum',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     },
     {
       name: 'Arthur Sales',
       role: 'Documentação',
-      bio: 'Lorem Ipsum',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     },
     {
       name: 'Diego Ernesto',
       role: 'Programação',
-      bio: 'Lorem Ipsum',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     },
     {
       name: 'Erick de Moura',
       role: 'História e documentação',
-      bio: 'Lorem Ipsum',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     },
   ];
 
@@ -49,14 +39,8 @@ export const SobreNos: React.FC = () => {
         <div style={styles.teamGrid}>
           {teamMembers.map((member, index) => (
             <div key={index} style={styles.memberCard}>
-              <img
-                src={member.avatarUrl}
-                alt={member.name}
-                style={styles.avatar}
-              />
               <h3 style={styles.memberName}>{member.name}</h3>
               <span style={styles.memberRole}>{member.role}</span>
-              <p style={styles.memberBio}>{member.bio}</p>
             </div>
           ))}
         </div>
@@ -109,13 +93,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'flex-start',
     boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
-  },
-  avatar: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    marginBottom: '16px',
   },
   memberName: {
     fontSize: '1rem',

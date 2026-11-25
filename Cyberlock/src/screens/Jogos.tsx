@@ -45,7 +45,6 @@ export const Jogos: React.FC = () => {
           </div>
         </section>
 
-        {/* Card de Jogo em Destaque */}
         <section style={styles.featuredSection}>
           <div style={{ ...styles.featuredCard, cursor: 'pointer' }} onClick={() => navigate('/jogos/1')}>
             <img
@@ -95,7 +94,6 @@ export const Jogos: React.FC = () => {
           <CarrosselJogos />
         </section>
 
-        {/* Grid de Progresso */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -117,7 +115,7 @@ export const Jogos: React.FC = () => {
               <span style={styles.statBadge}>+250 XP</span>
             </div>
             <p style={styles.statText}>
-              Complete LGPDle e Mínimo possível para desbloquear a próxima recompensa e subir de nível.
+              Complete Rema ao Tema e Mínimo possível para desbloquear a próxima recompensa e subir de nível.
             </p>
             <div style={styles.progressBarBg}>
               <div style={{ ...styles.progressBarFill, width: '40%' }} />
